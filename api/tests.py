@@ -75,3 +75,9 @@ class RedirectShortenedUrlViewTestCase(TestCase):
 		client = Client()
 		response = client.get(f'/{slug}')
 		self.assertRedirects(response, url, status_code=302, target_status_code=200, msg_prefix='', fetch_redirect_response=False)
+
+	def test_get_404(self):
+		slug = "woooo"
+		client = Client()
+		response = client.get(f'/{slug}')
+		self.assertEqual(response.status_code, 404)
