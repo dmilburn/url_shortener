@@ -15,8 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from api.views import create_shortened_urls
+from api.views import create_shortened_urls, redirect_slug
 
 urlpatterns = [
 	path('api/urls', create_shortened_urls),
+	path('<str:slug>', redirect_slug)
 ]

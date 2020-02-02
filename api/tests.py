@@ -64,3 +64,14 @@ class CreateShortenedUrlViewTestCase(TestCase):
 		client = Client()
 		response = client.get('/api/urls')
 		self.assertEqual(response.status_code, 404)
+
+
+class RedirectShortenedUrlViewTestCase(TestCase):
+
+	def test_get_success(self):
+		url = "http://banana.com"
+		slug = "woooo"
+		ShortenedUrl.objects.create(url=url, slug=slug)
+		client = Client()
+		response = client.get(f'/{slug}')
+		self.assertRedirects(response, url, status_code=302, target_status_code=200, msg_prefix='', fetch_redirect_response=False)
