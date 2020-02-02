@@ -35,7 +35,7 @@ class ShortenedUrlTestCase(TestCase):
 		self.assertIsNotNone(shortened_url.slug)
 
 
-class ShortenedUrlViewTestCase(TestCase):
+class CreateShortenedUrlViewTestCase(TestCase):
 
 	def test_post(self):
 		url = "banana.com"
