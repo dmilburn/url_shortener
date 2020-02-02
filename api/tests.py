@@ -1,6 +1,7 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.db.utils import IntegrityError
 from api.models import ShortenedUrl
+import json
 
 class ShortenedUrlTestCase(TestCase):
 	def test_save(self):
@@ -32,3 +33,34 @@ class ShortenedUrlTestCase(TestCase):
 		shortened_url = ShortenedUrl.objects.create(url=url)
 		self.assertEqual(ShortenedUrl.objects.count(), 1)
 		self.assertIsNotNone(shortened_url.slug)
+
+
+class ShortenedUrlViewTestCase(TestCase):
+
+	def test_post(self):
+		url = "banana.com"
+		slug = "woooo"
+		client = Client()
+		response = client.post('/api/urls', {"url": url, "slug": slug})
+		self.assertEqual(json.loads(response.content)["result"]["slug"], slug)
+		self.assertEqual(response.status_code, 200)
+
+
+	def test_post_without_slug(self):
+		url = "banana.com"
+		client = Client()
+		response = client.post('/api/urls', {"url": url})
+		self.assertIsNotNone(json.loads(response.content)["result"]["slug"])
+		self.assertEqual(response.status_code, 200)
+
+	def test_post_without_url(self):
+		client = Client()
+		response = client.post('/api/urls')
+		self.assertIsNotNone(json.loads(response.content)["result"]["errors"])
+		self.assertEqual(response.status_code, 400)
+
+
+	def test_get(self):
+		client = Client()
+		response = client.get('/api/urls')
+		self.assertEqual(response.status_code, 404)
