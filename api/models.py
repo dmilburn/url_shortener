@@ -4,7 +4,7 @@ import string
 
 
 class ShortenedUrl(models.Model):
-	slug = models.SlugField(unique=True, max_length=255)
+	slug = models.SlugField(unique=True, max_length=255, blank=True)
 	url = models.URLField(max_length=255)
 	created_on = models.DateTimeField(auto_now_add=True)
 	last_modified = models.DateTimeField(auto_now=True)
