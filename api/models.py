@@ -25,7 +25,8 @@ class ShortenedUrl(models.Model):
 		return generated_slug
 
 
+
 class VisitedUrl(models.Model):
-	shortened_url = models.ForeignKey(ShortenedUrl, on_delete=models.CASCADE)
+	shortened_url = models.ForeignKey(ShortenedUrl, on_delete=models.CASCADE, related_name="visited_urls")
 	created_on = models.DateTimeField(auto_now_add=True)
 	last_modified = models.DateTimeField(auto_now=True)
