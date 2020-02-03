@@ -4,7 +4,9 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from api.models import ShortenedUrl, VisitedUrl
 import json
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def create_shortened_urls(request):
 	if request.method == 'POST':
 		shortened_url = None
