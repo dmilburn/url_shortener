@@ -53,7 +53,27 @@ class CreateShortenedUrlViewTestCase(TestCase):
 		client = Client()
 		response = client.post('/api/urls', {"url": url})
 		self.assertIsNotNone(json.loads(response.content)["result"]["slug"])
+
 		self.assertEqual(response.status_code, 200)
+
+	def test_post_duplicate_url_without_slug(self):
+		url = "banana.com"
+		shortened_url = ShortenedUrl.objects.create(url=url)
+		client = Client()
+		response = client.post('/api/urls', {"url": url})
+		self.assertEqual(json.loads(response.content)["result"]["slug"], shortened_url.slug)
+		self.assertEqual(response.status_code, 200)
+
+	def test_post_duplicate_url_with_slug(self):
+		existing_slug = "potatoes"
+		url = "banana.com"
+		slug = "woooo"
+		shortened_url = ShortenedUrl.objects.create(url=url, slug=existing_slug)
+		client = Client()
+		response = client.post('/api/urls', {"url": url, "slug": slug})
+		self.assertEqual(json.loads(response.content)["result"]["slug"], slug)
+		self.assertEqual(response.status_code, 200)
+
 
 	def test_post_without_url(self):
 		client = Client()
