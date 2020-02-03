@@ -1,6 +1,7 @@
 from django.db import models
 import random
 import string
+from django.db.models.functions import TruncDay
 
 
 class ShortenedUrl(models.Model):
@@ -13,6 +14,14 @@ class ShortenedUrl(models.Model):
 		if not self.slug:
 			self.slug = ShortenedUrl.generate_slug()
 		super().save(*args, **kwargs)
+
+	def visit_count_by_day(self):
+		grouped_visits = self.visited_urls.all().annotate(date=TruncDay('created_on')).values("date").annotate(total=models.Count("date"))
+		formatted_visits = {}
+		for visits in grouped_visits:
+			formatted_visits[str(visits["date"])] = visits["total"]
+
+		return formatted_visits
 
 	@classmethod
 	def generate_slug(cls):

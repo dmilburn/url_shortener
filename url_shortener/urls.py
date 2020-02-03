@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from api.views import create_shortened_urls, redirect_slug
+from api.views import create_shortened_urls, redirect_slug, view_shortened_urls
 
 urlpatterns = [
 	path('api/urls', create_shortened_urls),
+	path('api/urls/<str:slug>', view_shortened_urls),
 	path('<str:slug>', redirect_slug)
 ]

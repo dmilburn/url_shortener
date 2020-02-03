@@ -2,6 +2,8 @@ from django.test import TestCase, Client
 from django.db.utils import IntegrityError
 from api.models import ShortenedUrl, VisitedUrl
 import json
+from datetime import timedelta
+from django.utils import timezone
 
 class ShortenedUrlTestCase(TestCase):
 	def test_save(self):
@@ -82,5 +84,58 @@ class RedirectShortenedUrlViewTestCase(TestCase):
 		slug = "woooo"
 		client = Client()
 		response = client.get(f'/{slug}')
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(VisitedUrl.objects.all().count(), 0)
+
+class ReadShortenedUrlViewTestCase(TestCase):
+
+	def test_get_no_visits(self):
+		url = "http://banana.com"
+		slug = "woooo"
+		shortened_url = ShortenedUrl.objects.create(url=url, slug=slug)
+		client = Client()
+		response = client.get(f'/api/urls/{slug}')
+		expected_response = {
+			"result": {
+				"created_on": str(shortened_url.created_on),
+				"total_visits": 0,
+				"visit_count_by_day": {},
+			}
+		}
+		self.assertEqual(json.loads(response.content), expected_response)
+
+	def test_get_with_visits(self):
+		url = "http://banana.com"
+		slug = "woooo"
+		shortened_url = ShortenedUrl.objects.create(url=url, slug=slug)
+		day_1 = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+		day_2 = day_1 + timedelta(days=1)
+		visits = []
+		for _ in range(3):
+			visits.append(VisitedUrl.objects.create(shortened_url=shortened_url))
+
+		visits[0].created_on = day_1
+		visits[0].save()
+
+		for visit in visits[1:]:
+			visit.created_on = day_2
+			visit.save()
+
+		client = Client()
+		response = client.get(f'/api/urls/{slug}')
+		expected_response = {
+			"result": {
+				"created_on": str(shortened_url.created_on),
+				"total_visits": 3,
+				"visit_count_by_day": {str(day_1): 1, str(day_2): 2},
+			}
+		}
+
+		self.assertEqual(json.loads(response.content), expected_response)
+
+	def test_get_404(self):
+		slug = "woooo"
+		client = Client()
+		response = client.get(f'/api/urls/{slug}')
 		self.assertEqual(response.status_code, 404)
 		self.assertEqual(VisitedUrl.objects.all().count(), 0)
