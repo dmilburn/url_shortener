@@ -50,4 +50,4 @@ def view_shortened_urls(request, slug):
 	return JsonResponse404()
 
 def JsonResponse404():
-	return JsonResponse({"result": "This page does not exist"}, status=404)
+	return JsonResponse({"result": {"errors": "This page does not exist"}}, status=404)
