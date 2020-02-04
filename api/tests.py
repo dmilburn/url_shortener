@@ -40,21 +40,23 @@ class ShortenedUrlTestCase(TestCase):
 class CreateShortenedUrlViewTestCase(TestCase):
 
 	def test_post(self):
-		url = "banana.com"
+		url = "https://banana.com"
 		slug = "woooo"
 		client = Client()
 		response = client.post('/api/urls', {"url": url, "slug": slug})
 		self.assertEqual(json.loads(response.content)["result"]["slug"], slug)
 		self.assertEqual(response.status_code, 200)
-
+		self.assertIsNotNone(ShortenedUrl.objects.filter(url__contains=url, slug=slug).first())
 
 	def test_post_without_slug(self):
 		url = "banana.com"
 		client = Client()
 		response = client.post('/api/urls', {"url": url})
-		self.assertIsNotNone(json.loads(response.content)["result"]["slug"])
-
+		response_slug = json.loads(response.content)["result"]["slug"]
+		self.assertIsNotNone(response_slug)
 		self.assertEqual(response.status_code, 200)
+		self.assertIsNotNone(ShortenedUrl.objects.filter(url__contains=url, slug=response_slug).first())
+
 
 	def test_post_duplicate_url_without_slug(self):
 		url = "banana.com"
@@ -63,14 +65,19 @@ class CreateShortenedUrlViewTestCase(TestCase):
 		response = client.post('/api/urls', {"url": url})
 		self.assertEqual(json.loads(response.content)["result"]["slug"], shortened_url.slug)
 		self.assertEqual(response.status_code, 200)
+		self.assertEqual(ShortenedUrl.objects.filter(url__contains=url).count(), 1)
+
 
 	def test_post_duplicate_http_url_without_slug(self):
 		url = "banana.com"
-		shortened_url = ShortenedUrl.objects.create(url=f"http://{url}")
+		url_with_http = f"http://{url}"
+		shortened_url = ShortenedUrl.objects.create(url=url_with_http)
 		client = Client()
 		response = client.post('/api/urls', {"url": url})
 		self.assertEqual(json.loads(response.content)["result"]["slug"], shortened_url.slug)
 		self.assertEqual(response.status_code, 200)
+		self.assertEqual(ShortenedUrl.objects.filter(url__contains=url).count(), 1)
+
 
 	def test_post_duplicate_url_with_slug(self):
 		existing_slug = "potatoes"
@@ -79,21 +86,33 @@ class CreateShortenedUrlViewTestCase(TestCase):
 		shortened_url = ShortenedUrl.objects.create(url=url, slug=existing_slug)
 		client = Client()
 		response = client.post('/api/urls', {"url": url, "slug": slug})
-		self.assertEqual(json.loads(response.content)["result"]["slug"], slug)
+		response_slug = json.loads(response.content)["result"]["slug"]
+		self.assertEqual(response_slug, slug)
 		self.assertEqual(response.status_code, 200)
-
+		self.assertIsNotNone(ShortenedUrl.objects.filter(url__contains=url, slug=response_slug).first())
+		self.assertEqual(ShortenedUrl.objects.filter(url__contains=url).count(), 2)
 
 	def test_post_without_url(self):
 		client = Client()
 		response = client.post('/api/urls')
 		self.assertIsNotNone(json.loads(response.content)["result"]["errors"])
 		self.assertEqual(response.status_code, 400)
+		self.assertEqual(ShortenedUrl.objects.count(), 0)
 
+	def test_post_bad_slug(self):
+		url = "banana.com"
+		slug = "woooo?/thisisbadnogood"
+		client = Client()
+		response = client.post('/api/urls', {"url": url, "slug": slug})
+		self.assertIsNotNone(json.loads(response.content)["result"]["errors"])
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(ShortenedUrl.objects.count(), 0)
 
 	def test_get(self):
 		client = Client()
 		response = client.get('/api/urls')
 		self.assertEqual(response.status_code, 404)
+		self.assertEqual(ShortenedUrl.objects.count(), 0)
 
 
 class RedirectShortenedUrlViewTestCase(TestCase):
