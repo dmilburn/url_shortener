@@ -15,7 +15,9 @@ def create_shortened_urls(request):
 		url = request.POST.get("url")
 
 		if url and not slug:
-			shortened_url = ShortenedUrl.objects.filter(url=url).first()
+			domain_and_www_regex = '(https?:\/\/)?(www\.)?'
+			full_regex_string = fr'{domain_and_www_regex}{url}'
+			shortened_url = ShortenedUrl.objects.filter(url__iregex=full_regex_string).first()
 
 		if not shortened_url:
 			shortened_url_form = ShortenedUrlForm(request.POST)
