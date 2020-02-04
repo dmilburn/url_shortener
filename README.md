@@ -7,12 +7,13 @@ This program is a JSON API with similar functionality to bit.ly, built in Django
 
 To run this application, you'll need to have set up locally:
 
-- Python
+- Python3
 - Pip
 - Django
 
-
-To actually run the application, you need to run the dev server. From the top level of the application run: `python manage.py runserver`
+To run the dev server: `python manage.py runserver`
+To run the migrations: `python manage.py migrate`
+To run tests, you need to run `python manage.py test api`
 
 ## What functionality does it have?
 
@@ -44,3 +45,17 @@ To actually run the application, you need to run the dev server. From the top le
 
 ## What kinds of decisions did you make writing this?
 
+### Technologies
+
+Given the time constraint, I thought it would be wise to use a framework that I was quite comfortable with. So I decided to go with Django. With more time, I would have considered using a lighter web framework since we didn't end up needing most of Django's functionality.
+
+I also decided to lean towards finishing more of the application functionality vs. trying to make the application truly ready to deploy. A few changes that would need to be made include using a database like Postgres instead of SQLite and turning the django easy debugging off.
+
+### Models
+
+I decided to create two models to hold the necessary data: one to hold the connections between URLs and the shortcode slugs we use to redirect to them and another to hold onto when a user visits a site.
+
+
+### Short code generation
+
+Short code generation lives in the model that holds the short codes, ShortenedUrl. I thought this would follow OOP principles best. To generate the short codes, I decided that random generation would fit this use case fairly well. There's a low likelihood of collisions up to a certain scale. An approach I decided against was using UUID generation. While this would make the likelihood of collisions much lower, UUIDs are quite long and kind of ruins the point of a "short" code.
